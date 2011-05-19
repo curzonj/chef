@@ -63,8 +63,17 @@ class Chef::Application
   # Get this party started
   def run
     reconfigure
+    clean_bundler_env
     setup_application
     run_application
+  end
+
+  def clean_bundler_env
+    if defined? Bundler
+      ENV.delete 'RUBYOPT'
+      ENV.delete 'BUNDLE_GEMFILE'
+      ENV.delete 'BUNDLE_BIN_PATH'
+    end
   end
 
   # Parse the configuration file
