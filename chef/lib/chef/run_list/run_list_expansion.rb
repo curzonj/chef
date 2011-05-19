@@ -146,7 +146,7 @@ class Chef
 
     end
 
-    # Expand a run list from disk. Suitable for chef-solo
+    # Expand a run list from disk. Suitable for local mode (chef-solo)
     class RunListExpansionFromDisk < RunListExpansion
 
       def fetch_role(name)

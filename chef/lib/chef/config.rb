@@ -166,6 +166,8 @@ class Chef
     run_command_stderr_timeout 120
     run_command_stdout_timeout 120
     solo  false
+    local  false
+    disconnected  false
     splay nil
 
     # Set these to enable SSL authentication / mutual-authentication

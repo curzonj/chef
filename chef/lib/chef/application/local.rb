@@ -25,7 +25,7 @@ require 'chef/rest'
 require 'open-uri'
 require 'fileutils'
 
-class Chef::Application::Solo < Chef::Application
+class Chef::Application::Local < Chef::Application
 
   option :config_file,
     :short => "-c CONFIG",
@@ -123,7 +123,7 @@ class Chef::Application::Solo < Chef::Application
 
     Chef::Config[:solo] = true
     Chef::Config[:local] = true
-    Chef::Config[:disconnected] = true
+    Chef::Config[:disconnected] = false
 
     if Chef::Config[:daemonize]
       Chef::Config[:interval] ||= 1800

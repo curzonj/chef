@@ -135,8 +135,8 @@ class Chef
     #
     #  * run_ohai - Collect information about the system
     #  * build_node - Get the last known state, merge with local changes
-    #  * register - If not in solo mode, make sure the server knows about this client
-    #  * sync_cookbooks - If not in solo mode, populate the local cache with the node's cookbooks
+    #  * register - If not in disconnected mode, make sure the server knows about this client
+    #  * sync_cookbooks - If not in local mode, populate the local cache with the node's cookbooks
     #  * converge - Bring this system up to date
     #
     # === Returns
@@ -147,7 +147,7 @@ class Chef
       Chef::Log.info("*** Chef #{Chef::VERSION} ***")
       enforce_path_sanity
       run_ohai
-      register unless Chef::Config[:solo]
+      register unless Chef::Config[:disconnected]
       build_node
 
       begin
@@ -183,7 +183,7 @@ class Chef
     #===Returns
     # Chef::RunContext:: the run context for this run.
     def setup_run_context
-      if Chef::Config[:solo]
+      if Chef::Config[:local]
         Chef::Cookbook::FileVendor.on_create { |manifest| Chef::Cookbook::FileSystemFileVendor.new(manifest, Chef::Config[:cookbook_path]) }
         run_context = Chef::RunContext.new(node, Chef::CookbookCollection.new(Chef::CookbookLoader.new(Chef::Config[:cookbook_path])))
       else
@@ -198,7 +198,7 @@ class Chef
     end
 
     def save_updated_node
-      unless Chef::Config[:solo]
+      unless Chef::Config[:disconnected]
         Chef::Log.debug("Saving the current state of node #{node_name}")
         @node.save
       end
@@ -228,10 +228,15 @@ class Chef
     def build_node
       Chef::Log.debug("Building node object for #{node_name}")
 
-      if Chef::Config[:solo]
-        @node = Chef::Node.build(node_name)
-      else
+      # The server needs to know about us even if we ignore it's opinion
+      # as to our node configuration
+      unless Chef::Config[:disconnected]
         @node = Chef::Node.find_or_create(node_name)
+      end
+
+      # Load our local opinion about the node configuration
+      if Chef::Config[:local] || ! defined? @node
+        @node = Chef::Node.build(node_name)
       end
 
       # Allow user to override the environment of a node by specifying
@@ -245,7 +250,7 @@ class Chef
       # determine which versions of cookbooks to use.
       @node.reset_defaults_and_overrides
       @node.consume_external_attrs(ohai.data, @json_attribs)
-      if Chef::Config[:solo]
+      if Chef::Config[:local]
         @run_list_expansion = @node.expand!('disk')
       else
         @run_list_expansion = @node.expand!('server')
@@ -338,7 +343,7 @@ class Chef
     end
 
     def assert_cookbook_path_not_empty(run_context)
-      if Chef::Config[:solo]
+      if Chef::Config[:local]
         # Check for cookbooks in the path given
         # Chef::Config[:cookbook_path] can be a string or an array
         # if it's an array, go through it and check each one, raise error at the last one if no files are found

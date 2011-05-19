@@ -400,7 +400,7 @@ class Chef
     end
 
     def self.cleanup_file_cache
-      unless Chef::Config[:solo]
+      unless Chef::Config[:local]
         # Delete each file in the cache that we didn't encounter in the
         # manifest.
         cache.find(File.join(%w{cookbooks ** *})).each do |cache_filename|

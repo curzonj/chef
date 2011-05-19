@@ -28,7 +28,7 @@ Gem::Specification.new do |s|
   %w{erubis moneta highline uuidtools}.each { |gem| s.add_dependency gem }
 
   s.bindir       = "bin"
-  s.executables  = %w( chef-client chef-solo knife shef )
+  s.executables  = %w( chef-client chef-solo chef-local knife shef )
   s.require_path = 'lib'
   s.files = %w(LICENSE README.rdoc) + Dir.glob("{distro,lib}/**/*")
 end
